@@ -1,6 +1,6 @@
 (ns practice-clojure-dsl.schema-test
-  (:require [clojure.test :refer :all])
-  (:require [practice-clojure-dsl.schema :refer :all]))
+  (:require [clojure.test :refer :all]
+            [practice-clojure-dsl.schema :refer :all]))
 
 (def entities-with-primitives
   [{:data {}
@@ -18,6 +18,10 @@
                   :valueType :db.type/boolean
                   :cardinality :db.cardinality/one}]}])
 
+(deftest schemify-entities-with-primitives
+  (doseq [entity entities-with-primitives]
+    (is (= (:schema entity) (schemify (:data entity) [])))))
+
 (def entities-with-refs
   [{:data :a
     :schema [#:db{:ident :a}]}
@@ -34,6 +38,10 @@
                   :valueType :db.type/long
                   :cardinality :db.cardinality/one}]}])
 
+(deftest schemify-entities-with-refs
+  (doseq [entity entities-with-refs]
+    (is (= (:schema entity) (schemify (:data entity) [])))))
+
 (def entities-with-collections
   [{:data {:a #{:b}}
     :schema [#:db{:ident :a
@@ -45,12 +53,21 @@
                   :valueType :db.type/ref
                   :cardinality :db.cardinality/many}
              #:db{:ident :c}
+             #:db{:ident :b}]}
+   {:data {:a #{0 1}}
+    :schema [#:db{:ident :a
+                  :valueType :db.type/long
+                  :cardinality :db.cardinality/many}]}
+   {:data {:a [0 1]}
+    :schema [#:db{:ident :a
+                  :valueType :db.type/long
+                  :cardinality :db.cardinality/many}]}
+   {:data {:a [:b]}
+    :schema [#:db{:ident :a
+                  :valueType :db.type/ref
+                  :cardinality :db.cardinality/many}
              #:db{:ident :b}]}])
 
-(deftest schemify-test
-  (doseq [entity entities-with-primitives]
-    (is (= (:schema entity) (schemify (:data entity) []))))
-  (doseq [entity entities-with-refs]
-    (is (= (:schema entity) (schemify (:data entity) []))))
+(deftest schemify-entities-with-collections
   (doseq [entity entities-with-collections]
     (is (= (:schema entity) (schemify (:data entity) [])))))

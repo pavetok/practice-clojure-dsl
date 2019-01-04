@@ -1,46 +1,60 @@
 (ns practice-clojure-dsl.schema
-  (:import (clojure.lang Keyword IPersistentMap IMapEntry PersistentArrayMap PersistentHashSet IPersistentSet)))
+  (:import (clojure.lang Keyword PersistentHashSet PersistentVector IPersistentCollection AMapEntry PersistentArrayMap))
+  (:require [clojure.spec.alpha :as s]
+            [clojure.core.match :refer [match]]))
 
-(defn- type-of
+(s/def ::coll-of (s/or :maps (s/coll-of map?)
+                       :kws (s/coll-of keyword?)
+                       :numbers (s/coll-of number?)
+                       :strings (s/coll-of string?)))
+
+(defn- coll-type-of
+  [v]
+  (match (s/conform ::coll-of v)
+         [:maps _] :db.type/ref
+         [:kws _] :db.type/ref
+         [:numbers _] :db.type/long
+         [:strings _] :db.type/string
+         :else "Invalid v"))
+
+(comment
+  (coll-type-of [0]))
+
+(defn- value-type-of
   [v]
   (get {Long :db.type/long
         String :db.type/string
         Boolean :db.type/boolean
         Keyword :db.type/ref
-        IPersistentMap :db.type/ref
-        PersistentArrayMap :db.type/ref
-        PersistentHashSet :db.type/ref}
-       (type v)))
+        PersistentArrayMap :db.type/ref}
+       (type v) (coll-type-of v)))
 
 (defn- cardinality-of
   [v]
-  (get {PersistentHashSet :db.cardinality/many}
+  (get {PersistentHashSet :db.cardinality/many
+        PersistentVector :db.cardinality/many}
        (type v) :db.cardinality/one))
 
 (defprotocol Schemify
   (schemify [data schema]))
 
 (extend-protocol Schemify
-  Keyword
+  IPersistentCollection
   (schemify
-    [kw schema]
-    (conj schema #:db{:ident kw}))
-  IMapEntry
+    [data schema]
+    (mapcat #(schemify % schema) data))
+  AMapEntry
   (schemify
     [[k v] schema]
     (conj
       (schemify v schema)
       #:db{:ident k
-           :valueType (type-of v)
+           :valueType (value-type-of v)
            :cardinality (cardinality-of v)}))
-  IPersistentMap
+  Keyword
   (schemify
-    [data schema]
-    (mapcat #(schemify % schema) data))
-  IPersistentSet
-  (schemify
-    [data schema]
-    (mapcat #(schemify % schema) data))
+    [kw schema]
+    (conj schema #:db{:ident kw}))
   Object
   (schemify
     [_ schema]
@@ -51,5 +65,8 @@
   (schemify :a [])
   (schemify [:a 0] [])
   (schemify {:a 0} [])
-  (schemify {:a :b} [])
-  (schemify {:a #{:b}} []))
+  (schemify {:a {:b 0}} [])
+  (schemify {:a #{:b}} [])
+  (schemify {:a [:b]} [])
+  (schemify (first {:a [:b]}) [])
+  (schemify {:a [0 1]} []))

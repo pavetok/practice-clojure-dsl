@@ -108,6 +108,54 @@
                                specing3
                                work1])))
 
+(let [value1 {:value/id "true"
+              :value/sort :value/value
+              :value/shape :true}
+      value2 {:value/id "false"
+              :value/sort :value/value
+              :value/shape :false}
+      type1 {:value/id "bool"
+             :value/sort :value/type-simple
+             :value/shape :bool
+             :value/patterns [value1 value2]}
+      type2 {:value/id "resource2-type"}
+      type3 {:value/id "operation1-type"
+             :value/sort :value/type-operation
+             :value/from [type1]
+             :value/to [type2]}
+      type4 {:value/id "practice1-type"
+             :value/sort :value/type-interface
+             :value/values [type3]}
+      place1 {:value/id "a1"
+              :value/sort :value/place}
+      place2 {:value/id "a2"
+              :value/sort :value/place}
+      resource1 {:resource/id "res1"
+                 :value/sort :value/value}
+      operation1 {:operation/id "op1"
+                  :operation/from [place1]
+                  :operation/to [place2]
+                  :operation/body {}}
+      specing1 {:specing/type type1
+                :specing/places [place1]
+                :specing/members [resource1]}
+      specing2 {:specing/type type2
+                :specing/places [place2]}
+      specing3 {:specing/type type3
+                :specing/members [operation1]}
+      placing1 {:placing/place place1
+                :placing/resource resource1}
+      todo1 {:todo/id "todo1"
+             :todo/operation operation1
+             :todo/from [placing1]}
+      work1 {:work/id "w1"
+             :work/practice type4
+             :work/todos [todo1]}]
+  (:tx-data @(d/transact conn [specing1
+                               specing2
+                               specing3
+                               work1])))
+
 (d/q '[:find [?n ...]
        :where
        [_ :rel/eq ?n]]

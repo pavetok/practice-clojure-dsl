@@ -2,6 +2,11 @@
 
 A Clojure library designed to ... well, that part is up to you.
 
+## TODO
+
+1. Data -> Schema Mapping
+2. Data -> Data Matching
+
 ## Usage
 
 FIXME

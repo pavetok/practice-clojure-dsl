@@ -26,9 +26,6 @@
          [:strings _] :db.type/string
          :else "Invalid v"))
 
-(comment
-  (coll-type-of [0]))
-
 (defn- value-type-of
   [v]
   (get {Long :db.type/long

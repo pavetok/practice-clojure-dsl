@@ -2,7 +2,7 @@
   (:require [datomic.api :as d]))
 
 (def construct-schema
-  [{:db/ident :rel/eq
+  [{:db/ident :val/eq
     :db/valueType :db.type/keyword
     :db/cardinality :db.cardinality/many}
    {:db/ident :eq/in

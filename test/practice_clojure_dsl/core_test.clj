@@ -24,8 +24,8 @@
 
 (comment
   (def foo
-    [{:rel/eq [:bool :bool]}
-     {:rel/eq [:true :true]
+    [{:val/eq [:bool :bool]}
+     {:val/eq [:true :true]
       :eq/in [:bool]}
-     {:rel/eq [:false :false]
+     {:val/eq [:false :false]
       :eq/in [:bool]}]))

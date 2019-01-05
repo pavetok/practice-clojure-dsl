@@ -1,6 +1,10 @@
 (ns practice-clojure-dsl.core
   (:require [datomic.api :as d]
+            [clojure.pprint :refer [pprint]]
+            [clojure.spec.alpha :as s]
+            [clojure.core.match :refer [match]]
             [practice-clojure-dsl.schema :refer [schemify]]
+            [matcho.core :as m]
             [practice-clojure-dsl.constructs :refer :all]))
 
 (defn fresh-database
@@ -13,6 +17,43 @@
       conn)))
 
 (def conn (fresh-database))
+
+(defn check
+  [m]
+  (let [member-val (first (:val/eq m))
+        type-vals (:type/vals (first (:val/in m)))]
+    (take-while not-empty (map #(m/match* member-val %) type-vals))))
+
+(comment
+  (let [v1 {:val/id "v1"}
+        v2 {:val/id "v2"}
+        t1 {:val/id "t1"
+            :val/eq [v2]
+            :type/vals [v1]}
+        m1 {:val/id "m1"
+            :val/eq [v1]
+            :val/in [t1]}
+        schema (->> []
+                    (schemify m1))]
+    (do
+      (:tx-data @(d/transact conn schema))
+      (:tx-data @(d/transact conn [m1]))
+      (check m1)))
+
+  (d/pull (d/db conn) '[*] [:val/id "m1"])
+  (d/pull (d/db conn) '[*] {:val/id "m1"})
+
+  (do))
+
+(comment
+  (let [v3 (d/pull (d/db conn) '[* #:value{:patterns ...}] [:val/id "v3"])
+        v4 (assoc v3 :val/id "foo")]
+    (do
+      (match v3
+             ;#:value{:id "v3"} "v3"
+             v4 "v3-full"
+             :else "no")))
+  (do))
 
 (comment
   (d/q '[:find ?n
@@ -27,9 +68,9 @@
         prod-kind {:prod/params [type-a type-b]}
         prod-type {:prod/params [:bool :bool]}
         prod-member {:prod/params [:true :false]}]
-    (:tx-data @(d/transact conn [{:rel/eq [prod-type prod-type]
+    (:tx-data @(d/transact conn [{:val/eq [prod-type prod-type]
                                   :eq/in [prod-kind]}
-                                 {:rel/eq [prod-member prod-member]
+                                 {:val/eq [prod-member prod-member]
                                   :eq/in [prod-type]}])))
 
   (let [spec1 {:spec/id "s1"}
@@ -65,8 +106,8 @@
   ; 1. спека для ресурсов
   ; 2. мутное назначение практики
 
-  (let [value1 {:value/id "true"}
-        value2 {:value/id "false"}
+  (let [value1 {:val/id "true"}
+        value2 {:val/id "false"}
         type1 {:type/id "bool"
                :type/patterns [value1 value2]}
         type2 {:type/id "resource2-type"}
@@ -102,34 +143,34 @@
                                  specing3
                                  work1])))
 
-  (let [value1 {:value/id "true"
+  (let [value1 {:val/id "true"
                 :value/sort :value/value
                 :value/shape :true}
-        value2 {:value/id "false"
+        value2 {:val/id "false"
                 :value/sort :value/value
                 :value/shape :false}
-        type1 {:value/id "bool"
+        type1 {:val/id "bool"
                :value/sort :value/type-simple
                :value/shape :bool
                :value/patterns [value1 value2]}
-        type2 {:value/id "resource2-type"}
-        type3 {:value/id "operation1-type"
+        type2 {:val/id "resource2-type"}
+        type3 {:val/id "operation1-type"
                :value/sort :value/type-operation
                :value/from [type1]
                :value/to [type2]}
-        type4 {:value/id "practice1-type"
+        type4 {:val/id "practice1-type"
                :value/sort :value/type-interface
                :value/values [type3]}
-        place1 {:value/id "a1"
+        place1 {:val/id "a1"
                 :value/sort :value/place}
-        place2 {:value/id "a2"
+        place2 {:val/id "a2"
                 :value/sort :value/place}
         resource1 {:resource/id "res1"
                    :value/sort :value/value}
         operation1 {:operation/id "op1"
                     :operation/from [place1]
                     :operation/to [place2]}
-                    ;:operation/body {}}
+        ;:operation/body {}}
         specing1 {:specing/type type1
                   :specing/places [place1]
                   :specing/members [resource1]}
@@ -167,5 +208,5 @@
 
   (d/q '[:find (pull ?e [*])
          :where
-         [?e :value/id "bool"]]
+         [?e :val/id "bool"]]
        (d/db conn)))

@@ -6,4 +6,5 @@
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [com.datomic/datomic-free "0.9.5697"]
                  [vvvvalvalval/datomock "0.2.2"]
-                 [org.clojure/core.match "0.3.0-alpha5"]])
+                 [org.clojure/core.match "0.3.0-alpha5"]
+                 [healthsamurai/matcho "0.3.2"]])

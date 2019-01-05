@@ -3,6 +3,15 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.core.match :refer [match]]))
 
+(defn- ?assoc
+  "Same as assoc, but skip the assoc if v is nil"
+  [m & kvs]
+  (->> kvs
+       (partition 2)
+       (filter second)
+       (map vec)
+       (into m)))
+
 (s/def ::coll-of (s/or :maps (s/coll-of map?)
                        :kws (s/coll-of keyword?)
                        :numbers (s/coll-of number?)
@@ -35,6 +44,10 @@
         PersistentVector :db.cardinality/many}
        (type v) :db.cardinality/one))
 
+(defn- unique-of
+  [kw]
+  (when (= "id" (name kw)) :db.unique/identity))
+
 (defprotocol Schemify
   (schemify [data schema]))
 
@@ -46,11 +59,12 @@
   AMapEntry
   (schemify
     [[k v] schema]
-    (conj
-      (schemify v schema)
-      #:db{:ident k
-           :valueType (value-type-of v)
-           :cardinality (cardinality-of v)}))
+    (let [unique (unique-of k)
+          ident (?assoc #:db{:ident k
+                             :valueType (value-type-of v)
+                             :cardinality (cardinality-of v)}
+                        :db/unique unique)]
+      (conj (schemify v schema) ident)))
   Keyword
   (schemify
     [kw schema]

@@ -26,7 +26,7 @@
     val))
 
 (defmulti specify-1 :val/sort)
-(defmethod specify-1 :val/type [ty] (map #(w/postwalk specify-type-val %) (:type/vals ty)))
+(defmethod specify-1 :val/type [ty] (w/postwalk specify-type-val (:type/vals ty)))
 (defmethod specify-1 :val/member [m] m)
 
 (defn specify
@@ -41,15 +41,16 @@
             :e #{"s"}
             :f :db.type/ref
             :g {:x :y
-                :val/id "v3"}}
+                :val/id "v3"}
+            :h (sequence [1])}
         v2 {:val/id "v2"}
         t1 {:val/id "t1"
             :val/eq [v2]
             :val/sort :val/type
             :type/vals [v1]}]
     (do
-      (specify t1)))
-  ;(meta (:g (first (specify t1))))))
+      (specify t1)
+      (meta (:h (first (specify t1))))))
 
   (s/conform (eval (s/or :m map? :n number?)) 0)
   (m/match* "s" (eval (s/or :m map? :n number?)))

@@ -4,7 +4,8 @@
             [clojure.spec.alpha :as s]
             [clojure.core.match :refer [match]]
             [practice-clojure-dsl.schema :refer [schemify]]
-            [matcho.core :as m]
+            [practice-clojure-dsl.spec :refer [specify]]
+            [practice-clojure-dsl.matcho :as m]
             [practice-clojure-dsl.constructs :refer :all]))
 
 (defn fresh-database
@@ -19,16 +20,16 @@
 (def conn (fresh-database))
 
 (defn check
-  [m]
-  (let [member-val (first (:val/eq m))
-        type-vals (:type/vals (first (:val/in m)))]
-    (take-while not-empty (map #(m/match* member-val %) type-vals))))
+  [val ty]
+  (let [spec (specify ty)]
+    (m/match* val spec)))
 
 (comment
   (let [v1 {:val/id "v1"}
         v2 {:val/id "v2"}
         t1 {:val/id "t1"
             :val/eq [v2]
+            :val/sort :val/type
             :type/vals [v1]}
         m1 {:val/id "m1"
             :val/eq [v1]
@@ -38,7 +39,7 @@
     (do
       (:tx-data @(d/transact conn schema))
       (:tx-data @(d/transact conn [m1]))
-      (check m1)))
+      (check v1 t1)))
 
   (d/pull (d/db conn) '[*] [:val/id "m1"])
   (d/pull (d/db conn) '[*] {:val/id "m1"})

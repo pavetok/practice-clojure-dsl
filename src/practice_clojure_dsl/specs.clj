@@ -1,4 +1,4 @@
-(ns practice-clojure-dsl.spec
+(ns practice-clojure-dsl.specs
   (:require [clojure.walk :as w]
             [practice-clojure-dsl.matcho :as m]
             [clojure.spec.alpha :as s])

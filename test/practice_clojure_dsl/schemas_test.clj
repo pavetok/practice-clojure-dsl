@@ -1,6 +1,6 @@
-(ns practice-clojure-dsl.schema-test
+(ns practice-clojure-dsl.schemas-test
   (:require [clojure.test :refer :all]
-            [practice-clojure-dsl.schema :refer :all]))
+            [practice-clojure-dsl.schemas :refer :all]))
 
 (def entities-with-primitives
   [{:data {}

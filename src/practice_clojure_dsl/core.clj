@@ -3,9 +3,9 @@
             [clojure.pprint :refer [pprint]]
             [clojure.spec.alpha :as s]
             [clojure.core.match :refer [match]]
-            [practice-clojure-dsl.schema :refer [schemify]]
-            [practice-clojure-dsl.spec :refer [specify]]
-            [practice-clojure-dsl.construct :refer :all]))
+            [practice-clojure-dsl.schemas :refer [schemify]]
+            [practice-clojure-dsl.specs :refer [specify]]
+            [practice-clojure-dsl.constructs :refer :all]))
 
 (defn fresh-database
   []

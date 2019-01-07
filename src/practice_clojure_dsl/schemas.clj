@@ -1,4 +1,4 @@
-(ns practice-clojure-dsl.schema
+(ns practice-clojure-dsl.schemas
   (:import (clojure.lang Keyword PersistentHashSet PersistentVector IPersistentCollection AMapEntry PersistentArrayMap))
   (:require [clojure.spec.alpha :as s]
             [clojure.core.match :refer [match]]))

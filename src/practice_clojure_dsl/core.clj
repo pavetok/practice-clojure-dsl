@@ -42,7 +42,6 @@
 
   (d/pull (d/db conn) '[*] [:val/id "m1"])
   (d/pull (d/db conn) '[*] {:val/id "m1"})
-
   (do))
 
 (comment

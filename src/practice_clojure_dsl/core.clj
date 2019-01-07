@@ -5,8 +5,7 @@
             [clojure.core.match :refer [match]]
             [practice-clojure-dsl.schema :refer [schemify]]
             [practice-clojure-dsl.spec :refer [specify]]
-            [practice-clojure-dsl.matcho :as m]
-            [practice-clojure-dsl.constructs :refer :all]))
+            [practice-clojure-dsl.construct :refer :all]))
 
 (defn fresh-database
   []
@@ -14,15 +13,9 @@
         db-uri (str "datomic:mem://" db-name)]
     (d/create-database db-uri)
     (let [conn (d/connect db-uri)]
-      ;@(d/transact conn construct-schema)
       conn)))
 
 (def conn (fresh-database))
-
-(defn check
-  [val ty]
-  (let [spec (specify ty)]
-    (m/match* val spec)))
 
 (comment
   (let [v1 {:val/id "v1"}
@@ -39,20 +32,9 @@
     (do
       (:tx-data @(d/transact conn schema))
       (:tx-data @(d/transact conn [m1]))
-      (check v1 t1)))
-
-  (d/pull (d/db conn) '[*] [:val/id "m1"])
+      (check-in v1 t1)))
   (d/pull (d/db conn) '[*] {:val/id "m1"})
-  (do))
-
-(comment
-  (let [v3 (d/pull (d/db conn) '[* #:value{:patterns ...}] [:val/id "v3"])
-        v4 (assoc v3 :val/id "foo")]
-    (do
-      (match v3
-             ;#:value{:id "v3"} "v3"
-             v4 "v3-full"
-             :else "no")))
+  (d/pull (d/db conn) '[* {:type/vals ...}] [:val/id "t1"])
   (do))
 
 (comment
@@ -209,4 +191,5 @@
   (d/q '[:find (pull ?e [*])
          :where
          [?e :val/id "bool"]]
-       (d/db conn)))
+       (d/db conn))
+  (do))

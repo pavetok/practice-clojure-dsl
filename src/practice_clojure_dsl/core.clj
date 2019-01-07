@@ -18,6 +18,14 @@
 (def conn (fresh-database))
 
 (comment
+  (let [v1 {:foo {:bar :baz}}
+        v2 (assoc-in v1 [:foo :db/id] (d/tempid :db.part/user))]
+    (do
+      (:tx-data @(d/transact conn (schemify v1 [])))
+      (:tx-data @(d/transact conn [v2]))))
+  (do))
+
+(comment
   (let [v1 {:val/id "v1"}
         v2 {:val/id "v2"}
         t1 {:val/id "t1"

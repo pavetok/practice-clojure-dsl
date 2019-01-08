@@ -1,58 +1,25 @@
 (ns practice-clojure-dsl.specs
   (:require [clojure.walk :as w]
             [practice-clojure-dsl.matcho :as m]
-            [clojure.spec.alpha :as s])
-  (:import (clojure.lang IPersistentMap AMapEntry IPersistentCollection)))
+            [clojure.spec.alpha :as s]))
 
-(defprotocol Specify
-  (specify-simple [val]))
-
-(extend-protocol Specify
-  IPersistentMap
-  (specify-simple
-    [val]
-    (dissoc val :db/id :val/id))
-  IPersistentCollection
-  (specify-simple
-    [vals]
-    (vary-meta vals assoc :matcho/or true))
-  AMapEntry
-  (specify-simple
-    [val]
-    val)
-  Object
-  (specify-simple
-    [val]
-    val))
-
-(defn- specify-simple-val
+(defn- specify-simple
   [val]
   (cond
     (map? val)
     (dissoc val :db/id :val/id)
 
-    (seqable? val)
-    (vary-meta vals assoc :matcho/or true)
+    (and (coll? val)
+         (not (map-entry? val)))
+    (vary-meta val assoc :matcho/or true)
 
     :else val))
 
-(defn- specify-fun-val
-  [val]
-  val)
+(defmulti specify :val/sort)
 
-(defmulti specify-1 :val/sort)
-
-(defmethod specify-1 :val/type.simple
+(defmethod specify :default
   [ty]
   (w/postwalk specify-simple (:val/specs ty)))
-
-(defmethod specify-1 :val/member
-  [m]
-  m)
-
-(defn specify
-  [val]
-  (specify-1 val))
 
 (comment
   (let [v1 {:val/id "v1"

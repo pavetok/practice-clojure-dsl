@@ -42,5 +42,5 @@
         ct1 (reg {:val/eq [ctv1]
                   :val/sort :val/type.fun
                   :val/specs [cv1]})]
-    (check-in cv1 ctv1))
+    (check-in cv1 ct1))
   (do))

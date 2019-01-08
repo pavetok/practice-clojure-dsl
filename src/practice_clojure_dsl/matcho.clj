@@ -42,7 +42,7 @@
                   (match-recur errors path ev v)))
               errors pattern))
 
-    (and (seqable? x)
+    (and (coll? x)
          (not (map? x))
          (vector? pattern))
     (let [strict? (:matcho/strict (meta pattern))
@@ -74,16 +74,10 @@
 (comment
   (apply concat (map #(match-recur [] [] 0 %) [0 1]))
   (match-recur [] [] 0 [0])
-  (match-recur [] [] 0 [0 1])
-  (match-recur [] [] 0 [1 0])
-  (match-recur [] [] 0 [1 2])
-  (do))
-
-(comment
-  (let []
-    (reduce (fn [acc val]
-              (if (= 5 val) (reduced acc) (conj acc val)))
-            [] (range 10)))
+  (match-recur [] [] 0 ^:matcho/or [0 1])
+  (match-recur [] [] 0 ^:matcho/or [1 0])
+  (match-recur [] [] 0 ^:matcho/or [1 2])
+  (match-recur [] [] [0] ^:matcho/or [0 1])
   (do))
 
 (defn match*
@@ -96,8 +90,13 @@
   (match* 0 ^:matcho/or [1 2])
   (match* 0 ^:matcho/or [{:a 0} {:b 1}])
   (match* {:a 0} {:a 0})
+  (match* {:a 0} {})
+  (match* 0 {})
   (match* {:a {:b 0}} {:a {:b 1}})
   (match* {:a 0} [{:a 0}])
   (match* {:a 0} ^:matcho/or [{:a 0} {:b 1}])
   (match* {:a 0} ^:matcho/or [{:a 1} {:a 2}])
+  (match* ["a"] ^:matcho/or ["b"])
+  (match* "a" ^:matcho/or ["a"])
+  (match* "a" ["a"])
   (do))

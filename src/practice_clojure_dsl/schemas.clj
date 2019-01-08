@@ -1,5 +1,6 @@
 (ns practice-clojure-dsl.schemas
-  (:import (clojure.lang Keyword PersistentHashSet PersistentVector IPersistentCollection AMapEntry PersistentArrayMap))
+  (:import (clojure.lang Keyword PersistentHashSet PersistentVector IPersistentCollection AMapEntry PersistentArrayMap)
+           (java.util UUID))
   (:require [clojure.spec.alpha :as s]
             [clojure.core.match :refer [match]]))
 
@@ -30,6 +31,7 @@
   [v]
   (get {Long :db.type/long
         String :db.type/string
+        UUID :db.type/uuid
         Boolean :db.type/boolean
         Keyword :db.type/ref
         PersistentArrayMap :db.type/ref}

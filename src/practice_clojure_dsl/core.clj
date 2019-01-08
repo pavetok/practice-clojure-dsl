@@ -5,7 +5,7 @@
             [clojure.core.match :refer [match]]
             [practice-clojure-dsl.schemas :refer [schemify]]
             [practice-clojure-dsl.specs :refer [specify]]
-            [practice-clojure-dsl.constructs :refer :all]))
+            [practice-clojure-dsl.values :refer :all]))
 
 (defn fresh-database
   []
@@ -20,9 +20,8 @@
 (comment
   (let [v1 {:foo {:bar :baz}}
         v2 (assoc-in v1 [:foo :db/id] (d/tempid :db.part/user))]
-    (do
-      (:tx-data @(d/transact conn (schemify v1 [])))
-      (:tx-data @(d/transact conn [v2]))))
+    (:tx-data @(d/transact conn (schemify v1 [])))
+    (:tx-data @(d/transact conn [v2])))
   (do))
 
 (comment
@@ -30,19 +29,18 @@
         v2 {:val/id "v2"}
         t1 {:val/id "t1"
             :val/eq [v2]
-            :val/sort :val/type
-            :type/vals [v1]}
+            :val/sort :val/type.simple
+            :val/specs [v1]}
         m1 {:val/id "m1"
             :val/eq [v1]
             :val/in [t1]}
         schema (->> []
                     (schemify m1))]
-    (do
-      (:tx-data @(d/transact conn schema))
-      (:tx-data @(d/transact conn [m1]))
-      (check-in v1 t1)))
+    (:tx-data @(d/transact conn schema))
+    (:tx-data @(d/transact conn [m1]))
+    (check-in v1 t1))
   (d/pull (d/db conn) '[*] {:val/id "m1"})
-  (d/pull (d/db conn) '[* {:type/vals ...}] [:val/id "t1"])
+  (d/pull (d/db conn) '[* {:val/specs ...}] [:val/id "t1"])
   (do))
 
 (comment
@@ -182,9 +180,8 @@
                  (schemify specing2 [])
                  (schemify specing3 [])
                  (schemify work1 []))]
-    (do
-      (:tx-data @(d/transact conn schema))
-      (:tx-data @(d/transact conn [work1]))))
+    (:tx-data @(d/transact conn schema))
+    (:tx-data @(d/transact conn [work1])))
 
   (d/q '[:find (pull ?e [*])
          :where

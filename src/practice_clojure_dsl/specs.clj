@@ -5,29 +5,50 @@
   (:import (clojure.lang IPersistentMap AMapEntry IPersistentCollection)))
 
 (defprotocol Specify
-  (specify-type-val [val]))
+  (specify-simple [val]))
 
 (extend-protocol Specify
   IPersistentMap
-  (specify-type-val
+  (specify-simple
     [val]
     (dissoc val :db/id :val/id))
   IPersistentCollection
-  (specify-type-val
+  (specify-simple
     [vals]
     (vary-meta vals assoc :matcho/or true))
   AMapEntry
-  (specify-type-val
+  (specify-simple
     [val]
     val)
   Object
-  (specify-type-val
+  (specify-simple
     [val]
     val))
 
+(defn- specify-simple-val
+  [val]
+  (cond
+    (map? val)
+    (dissoc val :db/id :val/id)
+
+    (seqable? val)
+    (vary-meta vals assoc :matcho/or true)
+
+    :else val))
+
+(defn- specify-fun-val
+  [val]
+  val)
+
 (defmulti specify-1 :val/sort)
-(defmethod specify-1 :val/type [ty] (w/postwalk specify-type-val (:type/vals ty)))
-(defmethod specify-1 :val/member [m] m)
+
+(defmethod specify-1 :val/type.simple
+  [ty]
+  (w/postwalk specify-simple (:val/specs ty)))
+
+(defmethod specify-1 :val/member
+  [m]
+  m)
 
 (defn specify
   [val]
@@ -46,11 +67,10 @@
         v2 {:val/id "v2"}
         t1 {:val/id "t1"
             :val/eq [v2]
-            :val/sort :val/type
-            :type/vals [v1]}]
-    (do
-      (specify t1)
-      (meta (:h (first (specify t1))))))
+            :val/sort :val/type.simple
+            :val/specs [v1]}]
+    (specify t1)
+    (meta (:h (first (specify t1)))))
 
   (s/conform (eval (s/or :m map? :n number?)) 0)
   (m/match* "s" (eval (s/or :m map? :n number?)))
